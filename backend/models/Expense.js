@@ -2,13 +2,13 @@ const db = require('../config/database');
 
 class Expense {
     // Create new expense
-    static async create({ groupId, paidBy, amount, description, category, date, inputMethod, voiceTranscript, receiptUrl, receiptFilename }) {
+    static async create({ groupId, subgroupId, paidBy, amount, description, category, date, inputMethod, voiceTranscript, receiptUrl, receiptFilename }) {
         try {
             const [result] = await db.execute(
                 `INSERT INTO expenses 
-        (group_id, paid_by, amount, description, category, expense_date, input_method, voice_transcript, receipt_url, receipt_filename) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [groupId, paidBy, amount, description, category, date, inputMethod || 'manual', voiceTranscript || null, receiptUrl || null, receiptFilename || null]
+        (group_id, subgroup_id, paid_by, amount, description, category, expense_date, input_method, voice_transcript, receipt_url, receipt_filename) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [groupId, subgroupId || null, paidBy, amount, description, category, date, inputMethod || 'manual', voiceTranscript || null, receiptUrl || null, receiptFilename || null]
             );
 
             return this.findById(result.insertId);
@@ -45,16 +45,25 @@ class Expense {
     }
 
     // Get all expenses for a group
-    static async getGroupExpenses(groupId) {
+    static async getGroupExpenses(groupId, subgroupId = null) {
         try {
-            const [rows] = await db.execute(
-                `SELECT e.*, u.name as paid_by_name, u.email as paid_by_email
-         FROM expenses e
-         JOIN users u ON e.paid_by = u.id
-         WHERE e.group_id = ?
-         ORDER BY e.expense_date DESC, e.created_at DESC`,
-                [groupId]
-            );
+            let query = `SELECT e.*, u.name as paid_by_name, u.email as paid_by_email
+                     FROM expenses e
+                     JOIN users u ON e.paid_by = u.id
+                     WHERE e.group_id = ?`;
+            const params = [groupId];
+
+            if (subgroupId === 'all') {
+                // Fetch everything for this group
+            } else if (subgroupId === 'main' || !subgroupId) {
+                query += ` AND e.subgroup_id IS NULL`;
+            } else {
+                query += ` AND e.subgroup_id = ?`;
+                params.push(subgroupId);
+            }
+            query += ` ORDER BY e.expense_date DESC, e.created_at DESC`;
+
+            const [rows] = await db.execute(query, params);
 
             // Add full backend URL to receipt_url
             const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';

@@ -11,6 +11,9 @@ const AddExpense = () => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('manual'); // 'manual' or 'voice'
 
+    const [subgroups, setSubgroups] = useState([]);
+    const [selectedSubgroup, setSelectedSubgroup] = useState('');
+
     const [formData, setFormData] = useState({
         amount: '',
         description: '',
@@ -21,6 +24,18 @@ const AddExpense = () => {
     const [receiptPreview, setReceiptPreview] = useState(null);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+
+    React.useEffect(() => {
+        const fetchSubgroups = async () => {
+            try {
+                const response = await api.get(`/subgroups/group/${groupId}`);
+                setSubgroups(response.data.data || []);
+            } catch (err) {
+                console.error('Failed to fetch subgroups', err);
+            }
+        };
+        fetchSubgroups();
+    }, [groupId]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -62,6 +77,10 @@ const AddExpense = () => {
             formPayload.append('category', formData.category);
             formPayload.append('date', formData.date);
             formPayload.append('inputMethod', 'manual');
+
+            if (selectedSubgroup) {
+                formPayload.append('subgroupId', selectedSubgroup);
+            }
 
             if (receipt) {
                 formPayload.append('receipt', receipt);
@@ -159,6 +178,24 @@ const AddExpense = () => {
                                 </select>
                             </div>
 
+                            {subgroups.length > 0 && (
+                                <div className="form-group">
+                                    <label className="form-label">Assign to Subgroup (Optional)</label>
+                                    <select
+                                        className="form-input"
+                                        value={selectedSubgroup}
+                                        onChange={(e) => setSelectedSubgroup(e.target.value)}
+                                    >
+                                        <option value="">-- No Subgroup (Whole Group) --</option>
+                                        {subgroups.map(sg => (
+                                            <option key={sg.id} value={sg.id}>
+                                                {sg.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+
                             <div className="form-group">
                                 <label className="form-label">Date</label>
                                 <input
@@ -221,6 +258,7 @@ const AddExpense = () => {
                     ) : (
                         <VoiceExpenseInput
                             groupId={groupId}
+                            subgroupId={selectedSubgroup || null}
                             onExpenseAdded={handleVoiceExpenseAdded}
                             onCancel={() => navigate(`/groups/${groupId}`)}
                         />

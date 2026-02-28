@@ -1,25 +1,42 @@
 const db = require('../config/database');
 
 class Settlement {
-    // Calculate balances for a group
-    static async calculateGroupBalances(groupId) {
+    // Calculate balances for a group or specific subgroup
+    static async calculateGroupBalances(groupId, subgroupId = null) {
         try {
-            // Get all group members
-            const [members] = await db.execute(
-                `SELECT gm.user_id, u.name, u.email
+            let membersParams = [groupId];
+            let membersQuery = `SELECT gm.user_id, u.name, u.email
                  FROM group_members gm
                  JOIN users u ON gm.user_id = u.id
-                 WHERE gm.group_id = ?`,
-                [groupId]
-            );
+                 WHERE gm.group_id = ?`;
 
-            // Get all expenses for the group
-            const [expenses] = await db.execute(
-                `SELECT id, paid_by, amount
+            let expensesParams = [groupId];
+            let expensesQuery = `SELECT id, paid_by, amount
                  FROM expenses
-                 WHERE group_id = ?`,
-                [groupId]
-            );
+                 WHERE group_id = ?`;
+
+            if (subgroupId && subgroupId !== 'main') {
+                membersQuery = `SELECT sm.user_id, u.name, u.email
+                     FROM subgroup_members sm
+                     JOIN users u ON sm.user_id = u.id
+                     WHERE sm.subgroup_id = ?`;
+                membersParams = [subgroupId];
+
+                expensesQuery += ` AND subgroup_id = ?`;
+                expensesParams.push(subgroupId);
+            } else {
+                expensesQuery += ` AND subgroup_id IS NULL`;
+            }
+
+            // Get all members
+            const [members] = await db.execute(membersQuery, membersParams);
+
+            // Get all expenses
+            const [expenses] = await db.execute(expensesQuery, expensesParams);
+
+            if (members.length === 0) {
+                return { balances: [], settlements: [], totalExpenses: 0, perPersonShare: 0 };
+            }
 
             // Initialize balance map (positive = owed to them, negative = they owe)
             const balances = {};

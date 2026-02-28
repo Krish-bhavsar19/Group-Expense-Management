@@ -4,8 +4,9 @@ const Settlement = require('../models/Settlement');
 const getGroupSettlement = async (req, res) => {
     try {
         const { groupId } = req.params;
+        const { subgroupId } = req.query;
 
-        const settlement = await Settlement.calculateGroupBalances(groupId);
+        const settlement = await Settlement.calculateGroupBalances(groupId, subgroupId);
 
         res.json({
             success: true,

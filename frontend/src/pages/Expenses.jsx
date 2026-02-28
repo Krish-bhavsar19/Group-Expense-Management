@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import api from '../config/api';
 import '../styles/expenses.css';
 import '../styles/modal-buttons.css';
@@ -8,8 +8,12 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const Expenses = () => {
     const { groupId } = useParams();
+    const [searchParams] = useSearchParams();
+    const urlSubgroupId = searchParams.get('subgroupId');
     const navigate = useNavigate();
     const [expenses, setExpenses] = useState([]);
+    const [subgroups, setSubgroups] = useState([]);
+    const [activeSubgroupFilter, setActiveSubgroupFilter] = useState(urlSubgroupId || 'all');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [selectedReceipt, setSelectedReceipt] = useState(null);
@@ -25,12 +29,31 @@ const Expenses = () => {
     const currentUserId = parseInt(localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')).id : 0);
 
     useEffect(() => {
-        fetchExpenses();
-    }, [groupId]);
+        const loadPageData = async () => {
+            setLoading(true);
+            await fetchSubgroups();
+            await fetchExpenses(activeSubgroupFilter);
+            setLoading(false);
+        };
+        loadPageData();
+    }, [groupId, activeSubgroupFilter]);
 
-    const fetchExpenses = async () => {
+    const fetchSubgroups = async () => {
         try {
-            const response = await api.get(`/expenses/group/${groupId}`);
+            const response = await api.get(`/subgroups/group/${groupId}`);
+            setSubgroups(response.data.data || []);
+        } catch (err) {
+            console.error('Failed to load subgroups', err);
+        }
+    };
+
+    const fetchExpenses = async (subgroupId) => {
+        try {
+            const url = subgroupId !== 'all'
+                ? `/expenses/group/${groupId}?subgroupId=${subgroupId}`
+                : `/expenses/group/${groupId}?subgroupId=all`;
+
+            const response = await api.get(url);
 
             if (response.data.success) {
                 setExpenses(response.data.data);
@@ -129,6 +152,59 @@ const Expenses = () => {
             {error && (
                 <div className="error-message" style={{ maxWidth: '1200px', margin: '0 auto 2rem', color: 'white', background: 'rgba(239, 68, 68, 0.2)', padding: '1rem', borderRadius: '12px' }}>
                     {error}
+                </div>
+            )}
+
+            {subgroups.length > 0 && (
+                <div style={{ maxWidth: '1200px', margin: '0 auto 1.5rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <button
+                        style={{
+                            padding: '0.5rem 1rem',
+                            borderRadius: '20px',
+                            border: 'none',
+                            background: activeSubgroupFilter === 'all' ? '#667eea' : 'rgba(255,255,255,0.7)',
+                            color: activeSubgroupFilter === 'all' ? 'white' : '#333',
+                            cursor: 'pointer',
+                            fontWeight: '600',
+                            transition: 'all 0.2s'
+                        }}
+                        onClick={() => setActiveSubgroupFilter('all')}
+                    >
+                        All Expenses
+                    </button>
+                    <button
+                        style={{
+                            padding: '0.5rem 1rem',
+                            borderRadius: '20px',
+                            border: 'none',
+                            background: activeSubgroupFilter === 'main' ? '#667eea' : 'rgba(255,255,255,0.7)',
+                            color: activeSubgroupFilter === 'main' ? 'white' : '#333',
+                            cursor: 'pointer',
+                            fontWeight: '600',
+                            transition: 'all 0.2s'
+                        }}
+                        onClick={() => setActiveSubgroupFilter('main')}
+                    >
+                        Main Group
+                    </button>
+                    {subgroups.map(sg => (
+                        <button
+                            key={sg.id}
+                            style={{
+                                padding: '0.5rem 1rem',
+                                borderRadius: '20px',
+                                border: 'none',
+                                background: activeSubgroupFilter === sg.id.toString() ? '#667eea' : 'rgba(255,255,255,0.7)',
+                                color: activeSubgroupFilter === sg.id.toString() ? 'white' : '#333',
+                                cursor: 'pointer',
+                                fontWeight: '600',
+                                transition: 'all 0.2s'
+                            }}
+                            onClick={() => setActiveSubgroupFilter(sg.id.toString())}
+                        >
+                            {sg.name}
+                        </button>
+                    ))}
                 </div>
             )}
 

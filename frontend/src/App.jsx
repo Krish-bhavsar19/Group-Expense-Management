@@ -30,7 +30,7 @@ function App() {
                         <Route path="/signup" element={<Signup />} />
                         <Route path="/verify-otp" element={<OTPVerification />} />
                         <Route path="/forgot-password" element={<ForgotPassword />} />
-                        <Route path="/auth/google/callback" element={<GoogleCallback />} />
+                        <Route path="/auth/callback" element={<GoogleCallback />} />
                         <Route path="/invite/:inviteCode" element={<JoinGroup />} />
 
                         {/* Protected routes */}

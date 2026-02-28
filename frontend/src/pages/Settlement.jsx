@@ -1,29 +1,50 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import api from '../config/api';
 import '../styles/settlement.css';
 
 const Settlement = () => {
     const { groupId } = useParams();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const urlSubgroupId = searchParams.get('subgroupId');
     const navigate = useNavigate();
     const [settlement, setSettlement] = useState(null);
+    const [subgroups, setSubgroups] = useState([]);
+    const [activeSubgroupFilter, setActiveSubgroupFilter] = useState(urlSubgroupId || 'main');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
     useEffect(() => {
-        fetchSettlement();
-    }, [groupId]);
+        const loadData = async () => {
+            setLoading(true);
+            await fetchSubgroups();
+            await fetchSettlement(activeSubgroupFilter);
+            setLoading(false);
+        };
+        loadData();
+    }, [groupId, activeSubgroupFilter]);
 
-    const fetchSettlement = async () => {
+    const fetchSubgroups = async () => {
         try {
-            const response = await api.get(`/settlement/group/${groupId}`);
+            const response = await api.get(`/subgroups/group/${groupId}`);
+            setSubgroups(response.data.data || []);
+        } catch (err) {
+            console.error('Failed to load subgroups', err);
+        }
+    };
+
+    const fetchSettlement = async (filterId) => {
+        try {
+            const endpoint = filterId !== 'main'
+                ? `/settlement/group/${groupId}?subgroupId=${filterId}`
+                : `/settlement/group/${groupId}`;
+
+            const response = await api.get(endpoint);
             if (response.data.success) {
                 setSettlement(response.data.data);
             }
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to load settlement');
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -79,6 +100,50 @@ const Settlement = () => {
             </div>
 
             <div className="settlement-content">
+                {subgroups.length > 0 && (
+                    <div style={{ maxWidth: '1200px', margin: '0 auto 1.5rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                        <button
+                            style={{
+                                padding: '0.5rem 1rem',
+                                borderRadius: '20px',
+                                border: 'none',
+                                background: activeSubgroupFilter === 'main' ? '#10b981' : 'rgba(255,255,255,0.7)',
+                                color: activeSubgroupFilter === 'main' ? 'white' : '#333',
+                                cursor: 'pointer',
+                                fontWeight: '600',
+                                transition: 'all 0.2s'
+                            }}
+                            onClick={() => {
+                                setActiveSubgroupFilter('main');
+                                setSearchParams({ subgroupId: 'main' });
+                            }}
+                        >
+                            Main Group
+                        </button>
+                        {subgroups.map(sg => (
+                            <button
+                                key={sg.id}
+                                style={{
+                                    padding: '0.5rem 1rem',
+                                    borderRadius: '20px',
+                                    border: 'none',
+                                    background: activeSubgroupFilter === sg.id.toString() ? '#10b981' : 'rgba(255,255,255,0.7)',
+                                    color: activeSubgroupFilter === sg.id.toString() ? 'white' : '#333',
+                                    cursor: 'pointer',
+                                    fontWeight: '600',
+                                    transition: 'all 0.2s'
+                                }}
+                                onClick={() => {
+                                    setActiveSubgroupFilter(sg.id.toString());
+                                    setSearchParams({ subgroupId: sg.id.toString() });
+                                }}
+                            >
+                                {sg.name}
+                            </button>
+                        ))}
+                    </div>
+                )}
+
                 {/* Summary Cards */}
                 <div className="summary-cards">
                     <div className="summary-card total">

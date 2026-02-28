@@ -3,7 +3,7 @@ import api from '../config/api';
 import '../styles/expenses.css';
 import '../styles/modal-buttons.css';
 
-const VoiceExpenseInput = ({ groupId, onExpenseAdded, onCancel }) => {
+const VoiceExpenseInput = ({ groupId, subgroupId, onExpenseAdded, onCancel }) => {
     const [isRecording, setIsRecording] = useState(false);
     const [transcript, setTranscript] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
@@ -100,6 +100,7 @@ const VoiceExpenseInput = ({ groupId, onExpenseAdded, onCancel }) => {
         try {
             const response = await api.post('/expenses', {
                 groupId,
+                subgroupId,
                 amount: parseFloat(editableData.amount),
                 description: editableData.description,
                 category: editableData.category,

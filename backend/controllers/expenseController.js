@@ -6,7 +6,7 @@ const path = require('path');
 // Create expense
 const createExpense = async (req, res) => {
     try {
-        const { groupId, amount, description, category, date, inputMethod, voiceTranscript, splits } = req.body;
+        const { groupId, amount, description, category, date, inputMethod, voiceTranscript, splits, subgroupId } = req.body;
         const userId = req.user.id;
 
         // Validate required fields
@@ -28,6 +28,30 @@ const createExpense = async (req, res) => {
             });
         }
 
+        // If subgroupId is provided, verify it belongs to the group and user is a member
+        if (subgroupId) {
+            const Subgroup = require('../models/Subgroup');
+            const subgroup = await Subgroup.findById(subgroupId);
+
+            if (!subgroup || subgroup.group_id != groupId) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid subgroup for this group'
+                });
+            }
+
+            // Verify user is member of subgroup (optional strictness, good for data integrity)
+            const subgroupMembers = await Subgroup.getMembers(subgroupId);
+            const isSubgroupMember = subgroupMembers.some(m => m.id === userId);
+
+            if (!isSubgroupMember) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'You are not a member of this subgroup'
+                });
+            }
+        }
+
         // Handle receipt upload
         const receiptUrl = req.file ? `/uploads/receipts/${req.file.filename}` : null;
         const receiptFilename = req.file ? req.file.filename : null;
@@ -35,6 +59,7 @@ const createExpense = async (req, res) => {
         // Create expense
         const expense = await Expense.create({
             groupId,
+            subgroupId: subgroupId || null,
             paidBy: userId,
             amount: parseFloat(amount),
             description,
@@ -112,9 +137,10 @@ const parseVoiceInput = async (req, res) => {
 const getGroupExpenses = async (req, res) => {
     try {
         const { groupId } = req.params;
-        console.log('🔍 getGroupExpenses called for groupId:', groupId);
+        const { subgroupId } = req.query;
+        console.log('🔍 getGroupExpenses called for groupId:', groupId, 'subgroupId:', subgroupId);
 
-        const expenses = await Expense.getGroupExpenses(groupId);
+        const expenses = await Expense.getGroupExpenses(groupId, subgroupId);
         console.log('📊 Found expenses:', expenses.length);
 
         res.json({

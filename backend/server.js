@@ -56,6 +56,7 @@ app.use('/api/groups', groupRoutes);
 app.use('/api/invite', inviteRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/settlement', settlementRoutes);
+app.use('/api/subgroups', require('./routes/subgroups'));
 
 // Health check route
 app.get('/health', (req, res) => {

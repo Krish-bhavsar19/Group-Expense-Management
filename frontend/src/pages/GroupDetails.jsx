@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../config/api';
+import SubgroupModal from '../components/Groups/SubgroupModal';
 import '../styles/groups.css';
 
 const GroupDetails = () => {
@@ -9,13 +10,16 @@ const GroupDetails = () => {
     const [group, setGroup] = useState(null);
     const [members, setMembers] = useState([]);
     const [pendingRequests, setPendingRequests] = useState([]);
+    const [subgroups, setSubgroups] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isAdmin, setIsAdmin] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [isSubgroupModalOpen, setIsSubgroupModalOpen] = useState(false);
 
     useEffect(() => {
         fetchGroupDetails();
         fetchPendingRequests();
+        fetchSubgroups();
     }, [id]);
 
     const fetchGroupDetails = async () => {
@@ -46,6 +50,16 @@ const GroupDetails = () => {
         } catch (error) {
             // Not admin, can't see requests
             setPendingRequests([]);
+        }
+    };
+
+    const fetchSubgroups = async () => {
+        try {
+            const response = await api.get(`/subgroups/group/${id}`);
+            setSubgroups(response.data.data || []);
+        } catch (error) {
+            console.error('Error fetching subgroups:', error);
+            setSubgroups([]);
         }
     };
 
@@ -220,6 +234,46 @@ const GroupDetails = () => {
                     ))}
                 </div>
 
+                {/* Subgroups List */}
+                <div className="subgroups-list" style={{ marginTop: '20px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <h3 style={{ color: '#333', margin: 0 }}>
+                            📂 Subgroups ({subgroups.length})
+                        </h3>
+                        <button
+                            className="btn btn-secondary"
+                            onClick={() => setIsSubgroupModalOpen(true)}
+                            style={{ padding: '0.25rem 0.5rem', fontSize: '0.875rem' }}
+                        >
+                            + Create
+                        </button>
+                    </div>
+                    {subgroups.length === 0 ? (
+                        <p style={{ color: '#666', fontSize: '0.9rem' }}>No subgroups yet.</p>
+                    ) : (
+                        subgroups.map((subgroup) => (
+                            <div key={subgroup.id || subgroup.name} className="member-item" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                                    <div className="member-info">
+                                        <h4>{subgroup.name}</h4>
+                                        {subgroup.description && <p>{subgroup.description}</p>}
+                                        <p style={{ fontSize: '0.75rem', color: '#999', marginTop: '4px' }}>
+                                            {subgroup.member_count} members • Created by {subgroup.creator_name || 'Unknown'}
+                                        </p>
+                                    </div>
+                                    <button
+                                        className="btn btn-primary"
+                                        onClick={() => navigate(`/groups/${id}/expenses?subgroupId=${subgroup.id}`)}
+                                        style={{ padding: '0.25rem 0.5rem', fontSize: '0.875rem' }}
+                                    >
+                                        View
+                                    </button>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+
                 {/* Actions */}
                 <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                     <button
@@ -246,6 +300,14 @@ const GroupDetails = () => {
                     )}
                 </div>
             </div>
+
+            <SubgroupModal
+                isOpen={isSubgroupModalOpen}
+                onClose={() => setIsSubgroupModalOpen(false)}
+                groupId={id}
+                members={members}
+                onSubgroupCreated={fetchSubgroups}
+            />
         </div>
     );
 };
