@@ -150,7 +150,7 @@ const Expenses = () => {
             </div>
 
             {error && (
-                <div className="error-message" style={{ maxWidth: '1200px', margin: '0 auto 2rem', color: 'white', background: 'rgba(239, 68, 68, 0.2)', padding: '1rem', borderRadius: '12px' }}>
+                <div className="error-message" style={{ maxWidth: '1200px', margin: '0 auto 2rem' }}>
                     {error}
                 </div>
             )}
@@ -162,8 +162,8 @@ const Expenses = () => {
                             padding: '0.5rem 1rem',
                             borderRadius: '20px',
                             border: 'none',
-                            background: activeSubgroupFilter === 'all' ? '#667eea' : 'rgba(255,255,255,0.7)',
-                            color: activeSubgroupFilter === 'all' ? 'white' : '#333',
+                            background: activeSubgroupFilter === 'all' ? 'var(--accent-indigo)' : 'var(--glass-bg)',
+                            color: activeSubgroupFilter === 'all' ? 'white' : 'var(--text-secondary)',
                             cursor: 'pointer',
                             fontWeight: '600',
                             transition: 'all 0.2s'
@@ -177,8 +177,8 @@ const Expenses = () => {
                             padding: '0.5rem 1rem',
                             borderRadius: '20px',
                             border: 'none',
-                            background: activeSubgroupFilter === 'main' ? '#667eea' : 'rgba(255,255,255,0.7)',
-                            color: activeSubgroupFilter === 'main' ? 'white' : '#333',
+                            background: activeSubgroupFilter === 'main' ? 'var(--accent-indigo)' : 'var(--glass-bg)',
+                            color: activeSubgroupFilter === 'main' ? 'white' : 'var(--text-secondary)',
                             cursor: 'pointer',
                             fontWeight: '600',
                             transition: 'all 0.2s'
@@ -194,8 +194,8 @@ const Expenses = () => {
                                 padding: '0.5rem 1rem',
                                 borderRadius: '20px',
                                 border: 'none',
-                                background: activeSubgroupFilter === sg.id.toString() ? '#667eea' : 'rgba(255,255,255,0.7)',
-                                color: activeSubgroupFilter === sg.id.toString() ? 'white' : '#333',
+                                background: activeSubgroupFilter === sg.id.toString() ? 'var(--accent-indigo)' : 'var(--glass-bg)',
+                                color: activeSubgroupFilter === sg.id.toString() ? 'white' : 'var(--text-secondary)',
                                 cursor: 'pointer',
                                 fontWeight: '600',
                                 transition: 'all 0.2s'
@@ -211,11 +211,12 @@ const Expenses = () => {
             <div className="expenses-grid">
                 {expenses.length === 0 ? (
                     <div className="empty-state" style={{
-                        background: 'rgba(255, 255, 255, 0.95)',
+                        background: 'var(--glass-bg)',
+                        border: '1px solid var(--glass-border)',
                         borderRadius: '16px',
                         padding: '3rem',
                         textAlign: 'center',
-                        color: '#666'
+                        color: 'var(--text-secondary)'
                     }}>
                         <p style={{ fontSize: '3rem', margin: '0 0 1rem 0' }}>📊</p>
                         <p style={{ fontSize: '1.2rem', margin: '0' }}>No expenses yet</p>
@@ -248,7 +249,7 @@ const Expenses = () => {
                                             onClick={() => handleEditClick(expense)}
                                             title="Edit expense"
                                             style={{
-                                                background: '#667eea',
+                                                background: 'var(--accent-indigo)',
                                                 color: 'white',
                                                 border: 'none',
                                                 borderRadius: '8px',
@@ -388,9 +389,9 @@ const Expenses = () => {
             <div style={{ textAlign: 'center', marginTop: '2rem' }}>
                 <button
                     style={{
-                        background: 'rgba(255, 255, 255, 0.2)',
-                        color: 'white',
-                        border: '2px solid rgba(255, 255, 255, 0.3)',
+                        background: 'var(--glass-bg)',
+                        color: 'var(--text-secondary)',
+                        border: '1px solid var(--glass-border)',
                         padding: '0.75rem 2rem',
                         borderRadius: '12px',
                         fontSize: '1rem',

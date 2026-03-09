@@ -14,6 +14,14 @@ const GroupDetails = () => {
     const [loading, setLoading] = useState(true);
     const [isAdmin, setIsAdmin] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [newInviteLink, setNewInviteLink] = useState('');
+    const [confirmDialog, setConfirmDialog] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: null,
+        isAlert: false
+    });
     const [isSubgroupModalOpen, setIsSubgroupModalOpen] = useState(false);
 
     useEffect(() => {
@@ -77,7 +85,13 @@ const GroupDetails = () => {
             await fetchGroupDetails();
         } catch (error) {
             console.error('Error approving request:', error);
-            alert('Failed to approve request');
+            setConfirmDialog({
+                isOpen: true,
+                title: 'Error',
+                message: 'Failed to approve request',
+                onConfirm: () => setConfirmDialog({ ...confirmDialog, isOpen: false }),
+                isAlert: true
+            });
         }
     };
 
@@ -87,44 +101,140 @@ const GroupDetails = () => {
             await fetchPendingRequests();
         } catch (error) {
             console.error('Error rejecting request:', error);
-            alert('Failed to reject request');
+            setConfirmDialog({
+                isOpen: true,
+                title: 'Error',
+                message: 'Failed to reject request',
+                onConfirm: () => setConfirmDialog({ ...confirmDialog, isOpen: false }),
+                isAlert: true
+            });
         }
     };
 
-    const handleRemoveMember = async (userId) => {
-        if (!confirm('Are you sure you want to remove this member?')) return;
-
-        try {
-            await api.delete(`/groups/${id}/members/${userId}`);
-            await fetchGroupDetails();
-        } catch (error) {
-            console.error('Error removing member:', error);
-            alert('Failed to remove member');
-        }
+    const handleRemoveMember = (userId) => {
+        setConfirmDialog({
+            isOpen: true,
+            title: 'Remove Member',
+            message: 'Are you sure you want to remove this member?',
+            isAlert: false,
+            onConfirm: async () => {
+                try {
+                    await api.delete(`/groups/${id}/members/${userId}`);
+                    await fetchGroupDetails();
+                    setConfirmDialog({ ...confirmDialog, isOpen: false });
+                } catch (error) {
+                    console.error('Error removing member:', error);
+                    setConfirmDialog({
+                        isOpen: true,
+                        title: 'Error',
+                        message: 'Failed to remove member',
+                        onConfirm: () => setConfirmDialog({ ...confirmDialog, isOpen: false }),
+                        isAlert: true
+                    });
+                }
+            }
+        });
     };
 
-    const handleLeaveGroup = async () => {
-        if (!confirm('Are you sure you want to leave this group?')) return;
-
-        try {
-            await api.post(`/groups/${id}/leave`);
-            navigate('/groups');
-        } catch (error) {
-            console.error('Error leaving group:', error);
-            alert(error.response?.data?.message || 'Failed to leave group');
-        }
+    const handleLeaveGroup = () => {
+        setConfirmDialog({
+            isOpen: true,
+            title: 'Leave Group',
+            message: 'Are you sure you want to leave this group?',
+            isAlert: false,
+            onConfirm: async () => {
+                try {
+                    await api.post(`/groups/${id}/leave`);
+                    setConfirmDialog({ ...confirmDialog, isOpen: false });
+                    navigate('/groups');
+                } catch (error) {
+                    console.error('Error leaving group:', error);
+                    setConfirmDialog({
+                        isOpen: true,
+                        title: 'Error',
+                        message: error.response?.data?.message || 'Failed to leave group',
+                        onConfirm: () => setConfirmDialog({ ...confirmDialog, isOpen: false }),
+                        isAlert: true
+                    });
+                }
+            }
+        });
     };
 
-    const handleDeleteGroup = async () => {
-        if (!confirm('Are you sure you want to delete this group? This cannot be undone.')) return;
+    const handleDeleteGroup = () => {
+        setConfirmDialog({
+            isOpen: true,
+            title: 'Delete Group',
+            message: 'Are you sure you want to delete this group? This cannot be undone.',
+            isAlert: false,
+            onConfirm: async () => {
+                try {
+                    await api.delete(`/groups/${id}`);
+                    setConfirmDialog({ ...confirmDialog, isOpen: false });
+                    navigate('/groups');
+                } catch (error) {
+                    console.error('Error deleting group:', error);
+                    setConfirmDialog({
+                        isOpen: true,
+                        title: 'Error',
+                        message: 'Failed to delete group',
+                        onConfirm: () => setConfirmDialog({ ...confirmDialog, isOpen: false }),
+                        isAlert: true
+                    });
+                }
+            }
+        });
+    };
 
-        try {
-            await api.delete(`/groups/${id}`);
-            navigate('/groups');
-        } catch (error) {
-            console.error('Error deleting group:', error);
-            alert('Failed to delete group');
-        }
+    const handleToggleStatus = () => {
+        const newStatus = group.status === 'inactive' ? 'active' : 'inactive';
+        setConfirmDialog({
+            isOpen: true,
+            title: `Mark as ${newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}`,
+            message: `Are you sure you want to mark this group as ${newStatus}?`,
+            isAlert: false,
+            onConfirm: async () => {
+                try {
+                    await api.put(`/groups/${id}/status`, { status: newStatus });
+                    await fetchGroupDetails();
+                    setConfirmDialog({ ...confirmDialog, isOpen: false });
+                } catch (error) {
+                    console.error('Error updating status:', error);
+                    setConfirmDialog({
+                        isOpen: true,
+                        title: 'Error',
+                        message: 'Failed to update group status',
+                        onConfirm: () => setConfirmDialog({ ...confirmDialog, isOpen: false }),
+                        isAlert: true
+                    });
+                }
+            }
+        });
+    };
+
+    const handleMakeAdmin = (userId) => {
+        setConfirmDialog({
+            isOpen: true,
+            title: 'Promote to Admin',
+            message: 'Are you sure you want to promote this member to Admin? They will have full control over the group.',
+            isAlert: false,
+            onConfirm: async () => {
+                try {
+                    await api.put(`/groups/${id}/members/${userId}/role`, { role: 'admin' });
+                    await fetchGroupDetails();
+                    setConfirmDialog({ ...confirmDialog, isOpen: false });
+                } catch (error) {
+                    console.error('Error promoting member to admin:', error);
+                    setConfirmDialog({
+                        isOpen: true,
+                        title: 'Error',
+                        message: 'Failed to promote member',
+                        onConfirm: () => setConfirmDialog({ ...confirmDialog, isOpen: false }),
+                        isAlert: true
+                    });
+                }
+            }
+        });
     };
 
     if (loading) {
@@ -154,22 +264,24 @@ const GroupDetails = () => {
 
     return (
         <div className="groups-container">
-            <div className="modal-content" style={{ maxWidth: '800px', margin: '0 auto' }}>
+            <div className="modal-content" style={{ maxWidth: '800px', margin: '0 auto', position: 'relative', paddingBottom: '6rem' }}>
                 <div className="modal-header">
-                    <h1 className="modal-title">{group.name}</h1>
+                    <h1 className="modal-title">
+                        {group.name} {group.status === 'inactive' && <span style={{ fontSize: '1rem', background: 'var(--glass-bg)', padding: '0.2rem 0.6rem', borderRadius: '4px', verticalAlign: 'middle', marginLeft: '10px' }}>Inactive</span>}
+                    </h1>
                     <button className="close-btn" onClick={() => navigate('/groups')}>
                         ←
                     </button>
                 </div>
 
                 {group.description && (
-                    <p style={{ color: '#666', marginBottom: '1.5rem' }}>{group.description}</p>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>{group.description}</p>
                 )}
 
                 {/* Invite Link Section */}
                 <div className="invite-section">
-                    <h3 style={{ margin: '0 0 0.5rem 0', color: '#333' }}>📨 Invite Link</h3>
-                    <p style={{ margin: '0 0 0.5rem 0', color: '#666', fontSize: '0.9rem' }}>
+                    <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-primary)' }}>📨 Invite Link</h3>
+                    <p style={{ margin: '0 0 0.5rem 0', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
                         Share this link with friends to invite them to the group
                     </p>
                     <div className="invite-link-container">
@@ -183,7 +295,7 @@ const GroupDetails = () => {
                 {/* Pending Requests (Admin Only) */}
                 {isAdmin && pendingRequests.length > 0 && (
                     <div className="pending-requests">
-                        <h3 style={{ color: '#333', marginBottom: '1rem' }}>
+                        <h3 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>
                             ⏳ Pending Requests ({pendingRequests.length})
                         </h3>
                         {pendingRequests.map((request) => (
@@ -210,7 +322,7 @@ const GroupDetails = () => {
 
                 {/* Members List */}
                 <div className="members-list">
-                    <h3 style={{ color: '#333', marginBottom: '1rem' }}>
+                    <h3 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>
                         👥 Members ({members.length})
                     </h3>
                     {members.map((member) => (
@@ -223,12 +335,21 @@ const GroupDetails = () => {
                                 <p>{member.email}</p>
                             </div>
                             {isAdmin && member.role !== 'admin' && (
-                                <button
-                                    className="remove-member-btn"
-                                    onClick={() => handleRemoveMember(member.user_id)}
-                                >
-                                    Remove
-                                </button>
+                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                    <button
+                                        className="btn btn-secondary"
+                                        onClick={() => handleMakeAdmin(member.user_id)}
+                                        style={{ padding: '0.25rem 0.5rem', fontSize: '0.875rem' }}
+                                    >
+                                        Make Admin
+                                    </button>
+                                    <button
+                                        className="remove-member-btn"
+                                        onClick={() => handleRemoveMember(member.user_id)}
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
                             )}
                         </div>
                     ))}
@@ -237,7 +358,7 @@ const GroupDetails = () => {
                 {/* Subgroups List */}
                 <div className="subgroups-list" style={{ marginTop: '20px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                        <h3 style={{ color: '#333', margin: 0 }}>
+                        <h3 style={{ color: 'var(--text-primary)', margin: 0 }}>
                             📂 Subgroups ({subgroups.length})
                         </h3>
                         <button
@@ -249,7 +370,7 @@ const GroupDetails = () => {
                         </button>
                     </div>
                     {subgroups.length === 0 ? (
-                        <p style={{ color: '#666', fontSize: '0.9rem' }}>No subgroups yet.</p>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>No subgroups yet.</p>
                     ) : (
                         subgroups.map((subgroup) => (
                             <div key={subgroup.id || subgroup.name} className="member-item" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
@@ -257,7 +378,7 @@ const GroupDetails = () => {
                                     <div className="member-info">
                                         <h4>{subgroup.name}</h4>
                                         {subgroup.description && <p>{subgroup.description}</p>}
-                                        <p style={{ fontSize: '0.75rem', color: '#999', marginTop: '4px' }}>
+                                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
                                             {subgroup.member_count} members • Created by {subgroup.creator_name || 'Unknown'}
                                         </p>
                                     </div>
@@ -275,30 +396,64 @@ const GroupDetails = () => {
                 </div>
 
                 {/* Actions */}
-                <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                    <button
-                        className="btn btn-primary"
-                        onClick={() => navigate(`/groups/${id}/expenses`)}
-                        style={{ flex: 1 }}
-                    >
-                        💰 View Expenses
-                    </button>
-                    <button
-                        className="btn btn-primary"
-                        onClick={() => navigate(`/groups/${id}/settlement`)}
-                        style={{ flex: 1, background: '#10b981' }}
-                    >
-                        💸 Settle Up
-                    </button>
-                    <button className="btn btn-secondary" onClick={handleLeaveGroup}>
-                        Leave Group
-                    </button>
-                    {isAdmin && (
-                        <button className="btn" style={{ background: '#ef4444', color: 'white' }} onClick={handleDeleteGroup}>
-                            Delete Group
+                <div style={{ marginTop: '2.5rem' }}>
+                    <h3 style={{ color: 'var(--text-primary)', marginBottom: '1rem', fontSize: '1.25rem' }}>🎯 Actions</h3>
+                    
+                    {/* Primary Financial Actions */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem', paddingRight: isAdmin ? '4rem' : '0' }}>
+                        <button
+                            className="btn btn-primary"
+                            onClick={() => navigate(`/groups/${id}/expenses`)}
+                            style={{ height: '3.5rem', fontSize: '1.1rem' }}
+                        >
+                            💰 View Expenses
                         </button>
-                    )}
+                        <button
+                            className="btn btn-primary"
+                            onClick={() => navigate(`/groups/${id}/settlement`)}
+                            style={{ height: '3.5rem', fontSize: '1.1rem', background: 'var(--gradient-emerald)' }}
+                        >
+                            💸 Settle Up
+                        </button>
+                    </div>
+
+                    {/* Secondary Management Actions */}
+                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', paddingRight: isAdmin ? '4rem' : '0' }}>
+                        <button 
+                            className="btn btn-secondary" 
+                            onClick={handleLeaveGroup}
+                            style={{ padding: '0.75rem 1.5rem' }}
+                        >
+                            Leave Group
+                        </button>
+                        {isAdmin && (
+                            <button 
+                                className="btn btn-secondary" 
+                                onClick={handleToggleStatus}
+                                style={{ padding: '0.75rem 1.5rem' }}
+                            >
+                                Mark as {group.status === 'inactive' ? 'Active' : 'Inactive'}
+                            </button>
+                        )}
+                    </div>
                 </div>
+
+                {/* Delete Group Icon - Absolute positioned at bottom right */}
+                {isAdmin && (
+                    <button
+                        className="delete-group-icon"
+                        onClick={handleDeleteGroup}
+                        title="Delete Group"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M3 6h18"></path>
+                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                        </svg>
+                    </button>
+                )}
             </div>
 
             <SubgroupModal
@@ -308,6 +463,34 @@ const GroupDetails = () => {
                 members={members}
                 onSubgroupCreated={fetchSubgroups}
             />
+
+            {/* Custom Confirmation Modal */}
+            {confirmDialog.isOpen && (
+                <div className="custom-confirm-overlay">
+                    <div className="custom-confirm-modal">
+                        <h2 style={{ color: 'var(--text-primary)', margin: '0 0 1rem 0' }}>{confirmDialog.title}</h2>
+                        <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>{confirmDialog.message}</p>
+                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                            {!confirmDialog.isAlert && (
+                                <button
+                                    className="btn btn-secondary"
+                                    onClick={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+                                    style={{ padding: '0.5rem 1rem' }}
+                                >
+                                    Cancel
+                                </button>
+                            )}
+                            <button
+                                className="btn btn-primary"
+                                onClick={confirmDialog.onConfirm}
+                                style={{ padding: '0.5rem 1rem', background: confirmDialog.isAlert ? 'var(--gradient-primary)' : 'var(--accent-red)' }}
+                            >
+                                {confirmDialog.isAlert ? 'OK' : 'Confirm'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

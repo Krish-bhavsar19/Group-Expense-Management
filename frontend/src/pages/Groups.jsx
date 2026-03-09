@@ -9,6 +9,7 @@ const Groups = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [createForm, setCreateForm] = useState({ name: '', description: '' });
     const [creating, setCreating] = useState(false);
+    const [activeTab, setActiveTab] = useState('active');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -63,26 +64,59 @@ const Groups = () => {
         );
     }
 
+    const activeGroups = groups.filter(g => g.status === 'active' || !g.status);
+    const inactiveGroups = groups.filter(g => g.status === 'inactive');
+
+    const displayedGroups = activeTab === 'active' ? activeGroups : inactiveGroups;
+
     return (
         <div className="groups-container">
-            <div className="groups-header">
-                <h1 className="groups-title">My Groups</h1>
-                <button className="create-group-btn" onClick={() => setShowCreateModal(true)}>
-                    + Create Group
+            <div className="groups-header" style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
+                <button 
+                    className="close-btn" 
+                    onClick={() => navigate('/dashboard')} 
+                    style={{ position: 'relative', width: 'auto', height: 'auto', padding: '0.4rem 1rem', fontSize: '1rem', background: 'var(--glass-bg)' }}
+                >
+                    &larr; Dashboard
+                </button>
+                <div style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h1 className="groups-title" style={{ margin: 0 }}>My Groups</h1>
+                    <button className="create-group-btn" onClick={() => setShowCreateModal(true)}>
+                        + Create Group
+                    </button>
+                </div>
+            </div>
+
+            <div className="tabs-container" style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.5rem' }}>
+                <button
+                    className={`tab-btn ${activeTab === 'active' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('active')}
+                    style={{ background: 'none', border: 'none', color: activeTab === 'active' ? 'var(--text-primary)' : 'var(--text-secondary)', fontSize: '1.1rem', fontWeight: 600, padding: '0.5rem 1rem', cursor: 'pointer', borderBottom: activeTab === 'active' ? '2px solid var(--accent-indigo)' : 'none' }}
+                >
+                    Active ({activeGroups.length})
+                </button>
+                <button
+                    className={`tab-btn ${activeTab === 'inactive' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('inactive')}
+                    style={{ background: 'none', border: 'none', color: activeTab === 'inactive' ? 'var(--text-primary)' : 'var(--text-secondary)', fontSize: '1.1rem', fontWeight: 600, padding: '0.5rem 1rem', cursor: 'pointer', borderBottom: activeTab === 'inactive' ? '2px solid var(--accent-indigo)' : 'none' }}
+                >
+                    Inactive ({inactiveGroups.length})
                 </button>
             </div>
 
-            {groups.length === 0 ? (
+            {displayedGroups.length === 0 ? (
                 <div className="empty-state">
-                    <h2>No groups yet</h2>
-                    <p>Create your first group to start managing expenses with friends!</p>
-                    <button className="create-group-btn" onClick={() => setShowCreateModal(true)}>
-                        Create Your First Group
-                    </button>
+                    <h2>No {activeTab} groups</h2>
+                    {activeTab === 'active' && <p>Create your first group to start managing expenses with friends!</p>}
+                    {activeTab === 'active' && (
+                        <button className="create-group-btn" onClick={() => setShowCreateModal(true)}>
+                            Create Your First Group
+                        </button>
+                    )}
                 </div>
             ) : (
                 <div className="groups-grid">
-                    {groups.map((group) => (
+                    {displayedGroups.map((group) => (
                         <div
                             key={group.id}
                             className="group-card"

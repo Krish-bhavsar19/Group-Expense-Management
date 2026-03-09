@@ -8,8 +8,10 @@ const {
     deleteGroup,
     getGroupMembers,
     removeMember,
+    updateMemberRole,
     leaveGroup,
-    regenerateInviteCode
+    regenerateInviteCode,
+    updateGroupStatus
 } = require('../controllers/groupController');
 const {
     getPendingRequests,
@@ -25,11 +27,13 @@ router.post('/', protect, createGroup);
 router.get('/', protect, getUserGroups);
 router.get('/:id', protect, isGroupMember, getGroupDetails);
 router.put('/:id', protect, isGroupAdmin, updateGroup);
+router.put('/:id/status', protect, isGroupAdmin, updateGroupStatus);
 router.delete('/:id', protect, isGroupAdmin, deleteGroup);
 
 // Member management
 router.get('/:id/members', protect, isGroupMember, getGroupMembers);
 router.delete('/:id/members/:userId', protect, isGroupAdmin, removeMember);
+router.put('/:id/members/:userId/role', protect, isGroupAdmin, updateMemberRole);
 router.post('/:id/leave', protect, isGroupMember, leaveGroup);
 
 // Invite management

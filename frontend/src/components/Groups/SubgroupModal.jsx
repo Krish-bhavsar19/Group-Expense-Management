@@ -98,8 +98,9 @@ const SubgroupModal = ({ isOpen, onClose, groupId, members, onSubgroupCreated })
                                         checked={(member.user_id || member.id) === currentUser?.id ? true : selectedMembers.includes(member.user_id || member.id)}
                                         onChange={() => handleMemberToggle(member.user_id || member.id)}
                                         disabled={(member.user_id || member.id) === currentUser?.id}
+                                        style={{ margin: 0 }}
                                     />
-                                    <label htmlFor={`member-${member.user_id || member.id}`} style={{ marginLeft: '8px', cursor: 'pointer' }}>
+                                    <label htmlFor={`member-${member.user_id || member.id}`} style={{ margin: '0 0 0 10px', cursor: 'pointer', display: 'inline-block', textTransform: 'none', letterSpacing: 'normal' }}>
                                         {member.name} {member.user_id === currentUser?.id ? '(You)' : ''}
                                     </label>
                                 </div>

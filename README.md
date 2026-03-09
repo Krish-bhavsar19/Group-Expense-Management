@@ -1,73 +1,57 @@
 # 💰 Group Expense Management Platform
 
-A full-stack web application for managing group expenses with features like group creation, expense tracking, settlements, subgroups, and integrated chat.
+A modern, full-stack web application designed for effortless group expense tracking. It features comprehensive group and subgroup management, secure robust authentication, receipt uploads, AI-powered expense entry, and settlement calculation.
 
-## 🎯 Current Status: Phase 1 Complete
+## 🎯 Current Status
 
-✅ **Authentication System Fully Implemented**
-- Email/Password registration with OTP verification
-- JWT token-based authentication
-- Google OAuth 2.0 integration
-- Password reset functionality
-- Protected routes and middleware
+✅ **Core Functionalities Fully Implemented**
+- **Robust Authentication:** Email/Password (with OTP), Google OAuth 2.0, password reset, JWT-based security.
+- **Group Management:** Create groups, invite members via links, and manage group details.
+- **Subgroups:** Create isolated subgroups within main groups for focused expense tracking.
+- **Expense Tracking:** Add, edit, and delete expenses. Upload receipts for proof of purchase.
+- **AI-Powered Entry:** Leverage Google's Generative AI (Gemini) to parse voice transcripts or natural language inputs for quick expense creation.
+- **Settlements:** Automatically calculate who owes whom and view detailed settlement charts.
 
 ## 🛠️ Tech Stack
 
 ### Frontend
-- **React 18** with Vite
-- React Router DOM for routing
-- Axios for API calls
-- Google OAuth library
-- Premium UI with CSS animations
+- **React 18** (via Vite)
+- **React Router DOM** for dynamic routing
+- **Axios** for API communication
+- **Framer Motion** for premium UI animations and transitions
+- **Google OAuth** (`@react-oauth/google`)
 
 ### Backend
-- **Node.js** with Express
-- **MySQL** for database
-- **JWT** for authentication
-- **Passport.js** for Google OAuth
-- **Nodemailer** for email OTP
-- **bcryptjs** for password hashing
+- **Node.js** with **Express.js**
+- **MySQL** relational database setup
+- **Google Generative AI** (`@google/generative-ai`) for smart parsing
+- **JWT & Passport.js** for authentication and OAuth
+- **Bcryptjs** for secure password hashing
+- **Multer** for handling receipt uploads
+- **Nodemailer** for email delivery (OTP)
 
 ## 📁 Project Structure
 
 ```
 Group_Expanse_management/
 ├── backend/
-│   ├── config/
-│   │   ├── database.js
-│   │   └── passport.js
-│   ├── controllers/
-│   │   └── authController.js
-│   ├── middleware/
-│   │   └── auth.js
-│   ├── models/
-│   │   └── User.js
-│   ├── routes/
-│   │   └── auth.js
-│   ├── utils/
-│   │   ├── email.js
-│   │   └── jwt.js
+│   ├── config/        # Database and passport setup
+│   ├── controllers/   # Auth, Group, Subgroup, Expense, Settlement controllers
+│   ├── middleware/    # Auth and validation middlewares
+│   ├── models/        # Database models (User, Group, Expense, etc.)
+│   ├── routes/        # API route definitions
+│   ├── services/      # AI Service (Gemini integration), Email service
+│   ├── utils/         # Helpers (jwt, email)
+│   ├── uploads/       # Stores uploaded receipts
 │   ├── .env
 │   ├── package.json
 │   └── server.js
 ├── frontend/
 │   ├── src/
-│   │   ├── components/
-│   │   │   ├── Auth/
-│   │   │   │   ├── Login.jsx
-│   │   │   │   ├── Signup.jsx
-│   │   │   │   ├── OTPVerification.jsx
-│   │   │   │   ├── ForgotPassword.jsx
-│   │   │   │   └── GoogleCallback.jsx
-│   │   │   └── ProtectedRoute.jsx
-│   │   ├── config/
-│   │   │   └── api.js
-│   │   ├── context/
-│   │   │   └── AuthContext.jsx
-│   │   ├── pages/
-│   │   │   └── Dashboard.jsx
-│   │   ├── styles/
-│   │   │   └── auth.css
+│   │   ├── components/ # Reusable UI pieces (Auth, Groups, VoiceExpenseInput, etc.)
+│   │   ├── config/     # API config
+│   │   ├── context/    # React Context (AuthContext)
+│   │   ├── pages/      # Full views (Dashboard, Groups, Home, JoinGroup, etc.)
 │   │   ├── App.jsx
 │   │   ├── main.jsx
 │   │   └── index.css
@@ -75,345 +59,118 @@ Group_Expanse_management/
 │   ├── package.json
 │   └── vite.config.js
 └── database/
-    └── schema.sql
+    └── schema.sql     # Complete database schema
 ```
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-
 - Node.js (v18 or higher)
 - MySQL (v8.0 or higher)
-- Gmail account (for sending OTP emails) OR SendGrid API key
-- Google Cloud Console project (for OAuth)
+- Gmail account (for OTP emails) OR SendGrid API key
+- Google Cloud Console project (for OAuth Auth and Gemini API Key)
 
 ### 1. Database Setup
-
-1. Install MySQL and start the MySQL service
+1. Install MySQL and start the service.
 2. Create the database:
-
-```bash
-mysql -u root -p
-```
-
-```sql
-CREATE DATABASE group_expense_management;
-```
-
+   ```bash
+   mysql -u root -p
+   ```
+   ```sql
+   CREATE DATABASE group_expense_management;
+   ```
 3. Run the schema:
-
-```bash
-mysql -u root -p group_expense_management < database/schema.sql
-```
+   ```bash
+   mysql -u root -p group_expense_management < database/schema.sql
+   ```
 
 ### 2. Backend Setup
+1. Navigate to the `backend` folder:
+   ```bash
+   cd backend
+   npm install
+   ```
+2. Create and configure your `.env` file (`cp .env.example .env`):
+   ```env
+   # Server & DB Config
+   PORT=5000
+   NODE_ENV=development
+   DB_HOST=localhost
+   DB_USER=root
+   DB_PASSWORD=your_mysql_password
+   DB_NAME=group_expense_management
 
-1. Navigate to backend folder:
+   # Security
+   JWT_SECRET=your_super_secret_jwt_key
+   JWT_EXPIRE=7d
+   SESSION_SECRET=your_session_secret_key
 
-```bash
-cd backend
-```
+   # Google Integrations (OAuth & AI)
+   GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
+   GOOGLE_CLIENT_SECRET=your_google_client_secret
+   GOOGLE_CALLBACK_URL=http://localhost:5000/api/auth/google/callback
+   GEMINI_API_KEY=your_gemini_api_key_here
 
-2. Install dependencies:
+   # Email Configuration (e.g., Gmail App Password)
+   EMAIL_SERVICE=gmail
+   EMAIL_USER=your_email@gmail.com
+   EMAIL_PASSWORD=your_gmail_app_password
 
-```bash
-npm install
-```
-
-3. Create `.env` file (copy from `.env.example`):
-
-```bash
-cp .env.example .env
-```
-
-4. Configure `.env` file:
-
-```env
-# Server Configuration
-PORT=5000
-NODE_ENV=development
-
-# Database Configuration
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=your_mysql_password
-DB_NAME=group_expense_management
-
-# JWT Configuration
-JWT_SECRET=your_super_secret_jwt_key_change_this_in_production
-JWT_EXPIRE=7d
-
-# Google OAuth (Get from Google Cloud Console)
-GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-GOOGLE_CALLBACK_URL=http://localhost:5000/api/auth/google/callback
-
-# Email Configuration (Option 1: Gmail)
-EMAIL_SERVICE=gmail
-EMAIL_USER=your_email@gmail.com
-EMAIL_PASSWORD=your_gmail_app_password
-
-# Email Configuration (Option 2: SendGrid)
-# SENDGRID_API_KEY=your_sendgrid_api_key
-
-# Frontend URL
-FRONTEND_URL=http://localhost:5173
-
-# Session Secret
-SESSION_SECRET=your_session_secret_key
-```
-
-#### 📧 Gmail Setup for OTP Emails
-
-1. Enable 2-Step Verification in your Google Account
-2. Go to: https://myaccount.google.com/apppasswords
-3. Generate an App Password
-4. Use this App Password in `EMAIL_PASSWORD`
-
-#### 🔑 Google OAuth Setup
-
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project or select existing
-3. Enable **Google+ API**
-4. Go to **Credentials** → **Create Credentials** → **OAuth 2.0 Client ID**
-5. Configure OAuth consent screen
-6. Add authorized redirect URIs:
-   - `http://localhost:5000/api/auth/google/callback`
-7. Copy **Client ID** and **Client Secret** to `.env`
-
-5. Start the backend server:
-
-```bash
-npm run dev
-```
-
-Backend will run on `http://localhost:5000`
+   # Frontend
+   FRONTEND_URL=http://localhost:5173
+   ```
+3. Start the server:
+   ```bash
+   npm run dev
+   ```
 
 ### 3. Frontend Setup
+1. Navigate to the `frontend` folder:
+   ```bash
+   cd frontend
+   npm install
+   ```
+2. Create and configure your `.env` file:
+   ```env
+   VITE_API_URL=http://localhost:5000/api
+   VITE_GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
+   ```
+3. Start the frontend:
+   ```bash
+   npm run dev
+   ```
+   *The app will run at `http://localhost:5173`.*
 
-1. Navigate to frontend folder:
+## 🧪 Application Flow & Usage
 
-```bash
-cd frontend
-```
+1. **Authentication**: Register an account via Email/OTP or log in seamlessly with Google OAuth.
+2. **Dashboard**: Navigate to your personal dashboard summarizing recent activity and overall balances.
+3. **Group Management**:
+   - Create a new Group.
+   - Generate an invite link to onboard friends securely.
+   - Create **Subgroups** to isolate specific cohorts of members inside the main group.
+4. **Expense Handling**:
+   - Manually enter an expense, divide it evenly or by specific splits.
+   - Attach image receipts for future reference.
+   - Use the **Voice Expense Input/AI Parser** to quickly dictate an expense (e.g., "I paid 50 dollars for pizza yesterday for the whole group").
+5. **Settlements**: Let the platform compute the minimal number of transactions required for everyone to be settled up.
 
-2. Install dependencies:
+## 📋 Key API Endpoints
 
-```bash
-npm install
-```
+- **Auth**: `/api/auth/register`, `/api/auth/login`, `/api/auth/google`, `/api/auth/verify-otp`
+- **Groups**: `/api/groups` (GET, POST), `/api/groups/:id`
+- **Subgroups**: `/api/groups/:groupId/subgroups` 
+- **Expenses**: `/api/expenses` (POST, GET, PUT, DELETE), `/api/expenses/voice/parse`
+- **Settlements**: `/api/settlements/:groupId`
 
-3. Create `.env` file:
+## 🔒 Security Summary
 
-```bash
-cp .env.example .env
-```
+- Passwords hashed using `bcryptjs` (10 rounds).
+- Short-lived JWTs combined with HTTP-friendly patterns.
+- SQL injection protection through parameterized MySQL queries.
+- Strict input validation pipelines on API endpoints.
+- Multer file-type validation to securely process image uploads.
 
-4. Configure `.env`:
-
-```env
-VITE_API_URL=http://localhost:5000/api
-VITE_GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
-```
-
-5. Start the frontend:
-
-```bash
-npm run dev
-```
-
-Frontend will run on `http://localhost:5173`
-
-## 🧪 Testing the Application
-
-### 1. Email/Password Registration Flow
-
-1. Go to `http://localhost:5173/signup`
-2. Fill in the registration form
-3. Check your email for OTP code
-4. Enter OTP to verify email
-5. Login with your credentials
-
-### 2. Google OAuth Flow
-
-1. Go to `http://localhost:5173/login`
-2. Click "Continue with Google"
-3. Select your Google account
-4. You'll be redirected to dashboard
-
-### 3. Password Reset Flow
-
-1. Go to `http://localhost:5173/forgot-password`
-2. Enter your email
-3. Check email for OTP
-4. Enter OTP and new password
-5. Login with new password
-
-## 📋 API Endpoints
-
-### Authentication
-
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| POST | `/api/auth/register` | Register new user | Public |
-| POST | `/api/auth/verify-otp` | Verify email OTP | Public |
-| POST | `/api/auth/resend-otp` | Resend OTP | Public |
-| POST | `/api/auth/login` | Login user | Public |
-| POST | `/api/auth/forgot-password` | Request password reset | Public |
-| POST | `/api/auth/reset-password` | Reset password | Public |
-| GET | `/api/auth/me` | Get current user | Private |
-| GET | `/api/auth/google` | Initiate Google OAuth | Public |
-| GET | `/api/auth/google/callback` | Google OAuth callback | Public |
-
-## 🎨 Features
-
-### Current Features (Phase 1)
-
-✅ User registration with email verification  
-✅ OTP-based email verification (10-minute expiry)  
-✅ Secure password hashing with bcrypt  
-✅ JWT token authentication  
-✅ Google OAuth 2.0 integration  
-✅ Password reset with OTP  
-✅ Protected routes  
-✅ Premium UI with animations  
-✅ Responsive design  
-✅ Auto-focus OTP inputs  
-✅ Countdown timer for OTP  
-✅ Password strength indicator  
-
-### Upcoming Features
-
-📌 **Phase 2: Group Management**
-- Create and manage groups
-- Add/remove members
-- Group settings and permissions
-
-📌 **Phase 3: Expense Tracking**
-- Add expenses to groups
-- Track who paid and who owes
-- Calculate settlements
-- Monthly transaction tracking
-
-📌 **Phase 4: Subgroups**
-- Create subgroups within main groups
-- Manage partial transactions
-- Isolated expense tracking
-
-📌 **Phase 5: Chat Feature**
-- Real-time group chat
-- Message history
-- Notifications
-
-## 🔒 Security Features
-
-- Passwords hashed with bcryptjs (10 salt rounds)
-- JWT tokens with configurable expiry
-- OTP stored in single JSON column (not separate columns)
-- Protected routes with middleware
-- CORS configuration
-- Input validation
-- SQL injection prevention with parameterized queries
-- XSS protection
-
-## 🎯 Database Schema
-
-### Users Table
-
-```sql
-CREATE TABLE users (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password VARCHAR(255), -- Can be NULL for OAuth users
-    auth_metadata JSON DEFAULT (JSON_OBJECT()),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_email (email)
-);
-```
-
-**auth_metadata JSON structure:**
-```json
-{
-  "otp": "123456",
-  "otpExpiry": "2026-02-06T22:00:00Z",
-  "isEmailVerified": false,
-  "googleId": null,
-  "loginAttempts": 0,
-  "lastLoginAttempt": null
-}
-```
-
-## 📝 Environment Variables Reference
-
-### Backend `.env`
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `PORT` | Backend server port | `5000` |
-| `DB_HOST` | MySQL host | `localhost` |
-| `DB_USER` | MySQL username | `root` |
-| `DB_PASSWORD` | MySQL password | `your_password` |
-| `DB_NAME` | Database name | `group_expense_management` |
-| `JWT_SECRET` | Secret key for JWT | Random string |
-| `GOOGLE_CLIENT_ID` | Google OAuth client ID | From Google Console |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth secret | From Google Console |
-| `EMAIL_USER` | Gmail address | `youremail@gmail.com` |
-| `EMAIL_PASSWORD` | Gmail app password | From Google Account |
-| `FRONTEND_URL` | Frontend URL | `http://localhost:5173` |
-
-### Frontend `.env`
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `VITE_API_URL` | Backend API URL | `http://localhost:5000/api` |
-| `VITE_GOOGLE_CLIENT_ID` | Google OAuth client ID | Same as backend |
-
-## 🐛 Troubleshooting
-
-### Database Connection Issues
-
-```bash
-# Check if MySQL is running
-mysql -u root -p
-
-# Verify database exists
-SHOW DATABASES;
-```
-
-### Email Not Sending
-
-1. Check Gmail App Password is correct
-2. Verify 2-Step Verification is enabled
-3. Check spam folder
-4. Try SendGrid as alternative
-
-### Google OAuth Not Working
-
-1. Verify redirect URI matches exactly
-2. Check Client ID and Secret
-3. Ensure Google+ API is enabled
-4. Clear browser cache and try again
-
-### Port Already in Use
-
-```bash
-# Kill process on port 5000
-npx kill-port 5000
-
-# Kill process on port 5173
-npx kill-port 5173
-```
-
-## 📄 License
-
-This project is for educational purposes.
-
-## 🤝 Contributing
-
-Future phases will be implemented. Stay tuned!
-
----
-
-**Created with ❤️ using React, Node.js, and MySQL**
+## 🤝 Contributing & Future Scope
+- **Phase 1-4 Complete**: Core Auth, Groups, Subgroups, Expenses, AI parsing, and Settlements are functional.
+- **Phase 5 (Upcoming)**: Integrated chat rooms and real-time notifications via WebSockets.

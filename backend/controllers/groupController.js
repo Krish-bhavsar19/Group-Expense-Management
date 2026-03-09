@@ -209,6 +209,55 @@ const removeMember = async (req, res) => {
     }
 };
 
+// @desc    Update member role
+// @route   PUT /api/groups/:id/members/:userId/role
+// @access  Private (admin only)
+const updateMemberRole = async (req, res) => {
+    try {
+        const groupId = req.params.id;
+        const targetUserId = req.params.userId;
+        const { role } = req.body;
+        const adminId = req.user.id;
+
+        if (!role || !['admin', 'member'].includes(role)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid role specified'
+            });
+        }
+
+        // Prevent admin from changing their own role this way (should use leave group or another mechanism if ever needed)
+        if (adminId === parseInt(targetUserId)) {
+            return res.status(400).json({
+                success: false,
+                message: 'You cannot change your own role'
+            });
+        }
+
+        const isMember = await GroupMember.isUserMember(groupId, targetUserId);
+        if (!isMember) {
+            return res.status(404).json({
+                success: false,
+                message: 'User is not a member of this group'
+            });
+        }
+
+        await GroupMember.updateRole(groupId, targetUserId, role);
+
+        res.status(200).json({
+            success: true,
+            message: `Member role updated to ${role} successfully`
+        });
+    } catch (error) {
+        console.error('Update member role error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to update member role',
+            error: error.message
+        });
+    }
+};
+
 // @desc    Leave group
 // @route   POST /api/groups/:id/leave
 // @access  Private (members only)
@@ -269,6 +318,38 @@ const regenerateInviteCode = async (req, res) => {
     }
 };
 
+// @desc    Update group status (active/inactive)
+// @route   PUT /api/groups/:id/status
+// @access  Private (admin only)
+const updateGroupStatus = async (req, res) => {
+    try {
+        const groupId = req.params.id;
+        const { status } = req.body;
+
+        if (!status || !['active', 'inactive'].includes(status)) {
+            return res.status(400).json({
+                success: false,
+                message: 'A valid status (active or inactive) is required'
+            });
+        }
+
+        const group = await Group.updateStatus(groupId, status);
+
+        res.status(200).json({
+            success: true,
+            message: `Group marked as ${status}`,
+            data: group
+        });
+    } catch (error) {
+        console.error('Update group status error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to update group status',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     createGroup,
     getUserGroups,
@@ -277,6 +358,8 @@ module.exports = {
     deleteGroup,
     getGroupMembers,
     removeMember,
+    updateMemberRole,
     leaveGroup,
-    regenerateInviteCode
+    regenerateInviteCode,
+    updateGroupStatus
 };

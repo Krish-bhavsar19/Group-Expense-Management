@@ -107,8 +107,8 @@ const Settlement = () => {
                                 padding: '0.5rem 1rem',
                                 borderRadius: '20px',
                                 border: 'none',
-                                background: activeSubgroupFilter === 'main' ? '#10b981' : 'rgba(255,255,255,0.7)',
-                                color: activeSubgroupFilter === 'main' ? 'white' : '#333',
+                                background: activeSubgroupFilter === 'main' ? 'var(--accent-emerald)' : 'var(--glass-bg)',
+                                color: activeSubgroupFilter === 'main' ? 'white' : 'var(--text-secondary)',
                                 cursor: 'pointer',
                                 fontWeight: '600',
                                 transition: 'all 0.2s'
@@ -127,8 +127,8 @@ const Settlement = () => {
                                     padding: '0.5rem 1rem',
                                     borderRadius: '20px',
                                     border: 'none',
-                                    background: activeSubgroupFilter === sg.id.toString() ? '#10b981' : 'rgba(255,255,255,0.7)',
-                                    color: activeSubgroupFilter === sg.id.toString() ? 'white' : '#333',
+                                    background: activeSubgroupFilter === sg.id.toString() ? 'var(--accent-emerald)' : 'var(--glass-bg)',
+                                    color: activeSubgroupFilter === sg.id.toString() ? 'white' : 'var(--text-secondary)',
                                     cursor: 'pointer',
                                     fontWeight: '600',
                                     transition: 'all 0.2s'
@@ -187,13 +187,13 @@ const Settlement = () => {
                                     <span>₹{userBalance.share.toFixed(2)}</span>
                                 </div>
                                 <div className="detail-row" style={{
-                                    borderTop: '2px solid #f0f0f0',
+                                    borderTop: '2px solid var(--glass-border)',
                                     paddingTop: '0.5rem',
                                     marginTop: '0.5rem',
                                     fontWeight: 'bold'
                                 }}>
                                     <span>Balance:</span>
-                                    <span style={{ color: userBalance.balance >= 0 ? '#10b981' : '#ef4444' }}>
+                                    <span style={{ color: userBalance.balance >= 0 ? 'var(--accent-emerald)' : 'var(--accent-red)' }}>
                                         {userBalance.balance >= 0 ? '+' : ''}₹{userBalance.balance.toFixed(2)}
                                     </span>
                                 </div>

@@ -91,6 +91,19 @@ class GroupMember {
         }
     }
 
+    // Update member role
+    static async updateRole(groupId, userId, role) {
+        try {
+            await db.execute(
+                'UPDATE group_members SET role = ? WHERE group_id = ? AND user_id = ?',
+                [role, groupId, userId]
+            );
+            return true;
+        } catch (error) {
+            throw error;
+        }
+    }
+
     // Get member count
     static async getMemberCount(groupId) {
         try {

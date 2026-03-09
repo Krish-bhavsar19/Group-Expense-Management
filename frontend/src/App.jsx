@@ -11,6 +11,7 @@ import ForgotPassword from './components/Auth/ForgotPassword';
 import GoogleCallback from './components/Auth/GoogleCallback';
 
 // Main pages
+import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Groups from './pages/Groups';
 import GroupDetails from './pages/GroupDetails';
@@ -41,8 +42,8 @@ function App() {
                         <Route path="/groups/:groupId/add-expense" element={<ProtectedRoute><AddExpense /></ProtectedRoute>} />
                         <Route path="/groups/:groupId/settlement" element={<ProtectedRoute><Settlement /></ProtectedRoute>} />
 
-                        {/* Default redirect */}
-                        <Route path="/" element={<Navigate to="/dashboard" />} />
+                        {/* Public routes */}
+                        <Route path="/" element={<Home />} />
                     </Routes>
                 </Router>
             </AuthProvider>

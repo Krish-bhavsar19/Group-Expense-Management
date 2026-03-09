@@ -11,4 +11,15 @@
 --     INDEX idx_email (email)
 -- );
 
+-- CREATE TABLE groups (
+--   id INT PRIMARY KEY AUTO_INCREMENT,
+--   name VARCHAR(255) NOT NULL,
+--   description TEXT,
+--   created_by INT NOT NULL,
+--   status ENUM('active', 'inactive') DEFAULT 'active',
+--   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+--   FOREIGN KEY (created_by) REFERENCES users(id)
+-- );
+
 SHOW TABLES;

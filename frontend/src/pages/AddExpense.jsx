@@ -112,7 +112,9 @@ const AddExpense = () => {
                 <div className="modal-content" style={{ maxWidth: '600px', margin: '0 auto' }}>
                     <div className="modal-header">
                         <h2>Add New Expense</h2>
-                        <button className="modal-close" onClick={() => navigate(`/groups/${groupId}`)}>×</button>
+                        <button className="close-btn" onClick={() => navigate(`/groups/${groupId}`)}>
+                            &times;
+                        </button>
                     </div>
 
                     <div className="tab-buttons">

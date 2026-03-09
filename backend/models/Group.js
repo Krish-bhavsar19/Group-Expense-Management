@@ -92,6 +92,20 @@ class Group {
         }
     }
 
+    // Update group status
+    static async updateStatus(groupId, status) {
+        try {
+            await db.execute(
+                'UPDATE `groups` SET status = ? WHERE id = ?',
+                [status, groupId]
+            );
+
+            return this.findById(groupId);
+        } catch (error) {
+            throw error;
+        }
+    }
+
     // Delete group
     static async delete(groupId) {
         try {
